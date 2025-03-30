@@ -6,7 +6,7 @@ const URL = require('./models/url.js');
 const cookieParser = require('cookie-parser');
 
 const { connectToMongoDB } = require('./module.js');
-const { restrictToLoggedInUserOnly , checkAuth } = require('./middlewares/auth.js');
+const { checkForAuthentication , restrictTo } = require('./middlewares/auth.js');
 
 const urlRoute = require('./routes/url.js');
 const staticRoute = require('./routes/staticRouter.js')
@@ -26,9 +26,10 @@ connectToMongoDB('mongodb://127.0.0.1:27017/short-url')
 app.use(express.json());
 app.use(express.urlencoded({extended : false})); 
 app.use(cookieParser());
+app.use(checkForAuthentication);
 
-app.use("/url", restrictToLoggedInUserOnly , urlRoute);
-app.use('/', checkAuth , staticRoute);
+app.use("/url", restrictTo(['NORMAL' , 'ADMIN']) , urlRoute);
+app.use('/', staticRoute);
 app.use('/user', userRoute);
 
 app.listen(PORT, () => console.log(`Server started at port ${PORT}`))
